@@ -80,3 +80,32 @@ CREATE TABLE course_books (
     FOREIGN KEY (ISBN) REFERENCES books(ISBN)
 );
 
+-- Populate the authors table
+INSERT INTO authors (AuthorName)
+SELECT DISTINCT UNNEST(STRING_TO_ARRAY(Authors, ', ')) AS AuthorName
+FROM unnormalized_data;
+
+-- Populate the publishers table
+INSERT INTO publishers (PublisherName, PublisherAddress)
+SELECT DISTINCT Publisher, PublisherAddress FROM unnormalized_data;
+
+-- Populate the books table
+INSERT INTO books (ISBN, Title, Edition, PublisherID, Pages, Year)
+SELECT DISTINCT ISBN, Title, Edition, p.PublisherID, Pages, Year
+FROM unnormalized_data u
+JOIN publishers p ON u.Publisher = p.PublisherName;
+
+-- Populate the book_authors table
+INSERT INTO book_authors (ISBN, AuthorID)
+SELECT DISTINCT u.ISBN, a.AuthorID
+FROM unnormalized_data u
+JOIN authors a ON POSITION(a.AuthorName IN u.Authors) > 0;
+
+-- Populate the courses table
+INSERT INTO courses (CRN, CourseName)
+SELECT DISTINCT CRN, CourseName FROM unnormalized_data;
+
+-- Populate the course_books table
+INSERT INTO course_books (CRN, ISBN)
+SELECT DISTINCT CRN, ISBN
+FROM unnormalized_data;
